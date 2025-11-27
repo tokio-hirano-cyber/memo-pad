@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>trading memo</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body
+    class="bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-emerald-500 to-90% from-indigo-500 to-teal-400 shadow-md rounded-lg w-screen p-6 mb-8">
+
+    <div>
+        <header
+            class="mb-8 text-center bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500 shadow-md rounded-lg w-full">
+            <h1 class="text-3xl font-bold text-gray-800">Trading Meomo</h1>
+        </header>
+
+        <main>
+            <div
+                class="bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500 shadow-md rounded-lg w-full p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">新規取引の登録</h2>
+                <form id="tradeForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+
+                    <!-- 日付 -->
+                    <div class="col-span-1 lg:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">日付</label>
+                        <input type="date" id="inputDate"
+                            class="w-full h-11 border-gray-300 border rounded-md px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            required>
+                    </div>
+
+                    <!-- 銘柄 -->
+                    <div class="col-span-1 lg:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">銘柄名/コード</label>
+                        <input type="text" id="inputSymbol" placeholder="例: 7203"
+                            class="w-full h-11 border-gray-300 border rounded-md px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            required>
+                    </div>
+
+                    <!-- 売買 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">売買</label>
+                        <select id="inputType"
+                            class="w-full h-11 border-gray-300 border rounded-md px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="buy">買い</option>
+                            <option value="sell">売り</option>
+                        </select>
+                    </div>
+
+                    <!-- 株価 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">株価 (円)</label>
+                        <input type="number" id="inputPrice" placeholder="0"
+                            class="w-full h-11 border-gray-300 border rounded-md px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            required>
+                    </div>
+
+                    <!-- 数量 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">数量 (株)</label>
+                        <input type="number" id="inputQuantity" placeholder="0"
+                            class="w-full h-11 border-gray-300 border rounded-md px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            required>
+                    </div>
+
+                    <!-- 追加 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">操作</label>
+                        <button id="save"
+                            class="w-12 h-11 bg-yellow-200 text-gray-600 font-bold rounded-md hover:bg-blue-700">
+                            追加
+                        </button>
+                        <button id="drop"
+                            class="w-12 h-11 bg-yellow-200 text-gray-600 font-bold rounded-md hover:bg-blue-700">
+                            削除
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+
+        <footer>
+            <div id="list"
+                class="bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500 shadow-md rounded-lg w-full p-6 mb-8">
+                <h2 class="text-xl font-semibold text-white border-b border-white/30 pb-4">
+                    履歴一覧
+                </h2>
+
+                <div class="grid grid-cols-6 gap-4 text-sm font-medium text-white mb-2 mt-2">
+                    <div>日付</div>
+                    <div>銘柄名/コード</div>
+                    <div>売買</div>
+                    <div>株価 (円)</div>
+                    <div>数量 (株)</div>
+                    <div>金額 (円)</div>
+                </div>
+
+                <table id="listTable" class="w-full text-sm text-white">
+                </table>
+            </div>
+        </footer>
+    </div>
+
+
+    <script>
+        function renderTableAndTotals() {
+            $("#listTable").empty();
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const data = localStorage.getItem(key);
+                const arr = data.split(",");
+                if (arr.length < 5) continue;
+                const date = arr[0];
+                const symbol = arr[1];
+                const type = arr[2];
+                const priceStr = arr[3];
+                const qtyStr = arr[4];
+                // 掛け算
+                const priceNum = parseFloat(priceStr) || 0;
+                const qtyNum = parseFloat(qtyStr) || 0;
+                const amount = priceNum * qtyNum;
+                const typeLabel = (type === "buy") ? "買い" : "売り";
+                const typeClass = (type === "buy") ? "text-green-400" : "text-red-400";
+                const html = `<tr class="grid grid-cols-6 gap-4 text-sm text-white border-b border-white/20 py-1">
+                <td>${date}</td><td>${symbol}</td><td class="${typeClass}">${typeLabel}</td><td>${priceNum}</td><td>${qtyNum}
+                </td><td>${amount}</td></tr>`;
+                $("#listTable").append(html);
+            }
+         }
+
+        $("#save").on("click", function () {
+            const key = Date.now().toString();
+            const value = $("#inputDate").val();
+            const value1 = $("#inputSymbol").val();
+            const value2 = $("#inputType").val();
+            const value3 = $("#inputPrice").val();
+            const value4 = $("#inputQuantity").val();
+            const data = value + "," + value1 + "," + value2 + "," + value3 + "," + value4;
+            localStorage.setItem(key, data);
+            renderTableAndTotals();
+        });
+
+        $("#drop").on("click", function () {
+            if (!confirm("すべての履歴を削除しますか？")) return;
+            localStorage.clear();
+            renderTableAndTotals();
+        });
+        $(function () {
+            renderTableAndTotals();
+        });
+
+    </script>
+</body>
+</html>
